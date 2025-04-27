@@ -1,0 +1,15 @@
+[versions]
+commons_lang_version = "3.17.0"
+gson_version = "2.13.0"
+guava_version = "33.4.8-jre"
+junit_version = "5.11.4"
+junit_platform_version = "1.11.4"
+
+[libraries]
+commons_lang = { module = "org.apache.commons:commons-lang3", version.ref = "commons_lang_version" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson_version" }
+guava = { module = "com.google.guava:guava", version.ref = "guava_version" }
+junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit_version"}
+junit_platform = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit_platform_version" }
+
+
