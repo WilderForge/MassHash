@@ -1,0 +1,11 @@
+[versions]
+guava_version = "33.4.8-jre"
+junit_version = "5.11.4"
+junit_platform_version = "1.11.4"
+
+[libraries]
+guava = { module = "com.google.guava:guava", version.ref = "guava_version" }
+junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit_version"}
+junit_platform = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit_platform_version" }
+
+
