@@ -127,7 +127,7 @@ public abstract class Hasher {
 		Objects.requireNonNull(predicate);
 		Objects.requireNonNull(forEachBlob);
 		if(threads > processors) {
-			System.out.println("[MassHash/WARN]: Thread count greather than the amount of availalbe processors (" + processors + "). Using " + processors + " threads instead.");
+			System.out.println("[MassHash/WARN]: Requested thread count (" + threads + ") greather than the amount of availalbe processors (" + processors + "). Using " + processors + " threads instead.");
 			threads = processors;
 		}
 		if(threads < 1) {
