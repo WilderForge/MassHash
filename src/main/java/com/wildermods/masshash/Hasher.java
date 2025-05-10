@@ -19,6 +19,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
@@ -56,6 +59,7 @@ public abstract class Hasher {
 	 * </p>
 	 */
 	protected SetMultimap<Hash, Path> blobs;
+	protected Logger logger = LogManager.getLogger();
 	
 	/**
 	 * Protected no-argument constructor for subclass serialization.
@@ -127,11 +131,11 @@ public abstract class Hasher {
 		Objects.requireNonNull(predicate);
 		Objects.requireNonNull(forEachBlob);
 		if(threads > processors) {
-			System.out.println("[MassHash/WARN]: Requested thread count (" + threads + ") greather than the amount of availalbe processors (" + processors + "). Using " + processors + " threads instead.");
+			logger.warn("[MassHash/WARN]: Requested thread count (" + threads + ") greather than the amount of availalbe processors (" + processors + "). Using " + processors + " threads instead.");
 			threads = processors;
 		}
 		if(threads < 1) {
-			System.out.println("[MassHash/WARN]: Thread count less than 1. Using 1 thread instead.");
+			logger.warn("[MassHash/WARN]: Thread count less than 1. Using 1 thread instead.");
 			threads = 1;
 		}
 
@@ -142,7 +146,7 @@ public abstract class Hasher {
 		
 		//Fail fast if there's nothing to process - no point spinning up threads
 		if (allFiles.isEmpty()) {
-			throw new IllegalArgumentException("No Files.");
+			throw logger.throwing(new IllegalArgumentException("No Files."));
 		}
 
 		//Use one thread per available processor core for efficient CPU usage
@@ -220,7 +224,7 @@ public abstract class Hasher {
 			} catch (Throwable t) {
 				//Shut down early if anything goes wrong in a thread
 				pool.shutdownNow();
-				throw new IOException("[MassHash/Error]: Thread pool failed", t);
+				throw logger.throwing(new IOException("Thread pool failed", t));
 			}
 		}
 
@@ -229,7 +233,7 @@ public abstract class Hasher {
 		//Wrap the result in a synchronized structure for thread safe access later
 		blobs = Multimaps.synchronizedSetMultimap(sorted);
 
-		System.out.println("[MassHash/INFO]: Blob calculation complete");
+		logger.info("Blob calculation complete");
 	}
 	
 	/**

@@ -2,10 +2,12 @@
 guava_version = "33.4.8-jre"
 junit_version = "5.11.4"
 junit_platform_version = "1.11.4"
+log4j_version = "2.24.3"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava_version" }
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit_version"}
 junit_platform = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit_platform_version" }
+log4j = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j_version" } 
 
 
