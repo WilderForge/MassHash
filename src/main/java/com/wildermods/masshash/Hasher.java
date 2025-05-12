@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -26,6 +27,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
+import com.wildermods.masshash.utils.Reference;
 
 /**
  * Abstract base class for hashing a collection of files in parallel.
@@ -75,7 +77,7 @@ public abstract class Hasher {
 	 * @throws IOException if an I/O error occurs during hashing
 	 */
 	public Hasher(final Stream<Path> files) throws IOException {
-		this(files, (b) -> {});
+		this(files, (p, b) -> {});
 	}
 	
 	/**
@@ -84,9 +86,12 @@ public abstract class Hasher {
 	 * 
 	 * @param files a stream of {@link Path} objects to hash
 	 * @param forEachBlob a {@link Consumer} invoked with each {@link Blob} before its data is dropped
+	 * @param forEachBlob a consumer invoked with each {@link Blob} and a {@link Reference}&lt;Path&gt; 
+	 *        that wraps the original file path. This allows the path to be modified (e.g., to relativize or normalize it)
+	 *        before being added to the result map. The updated reference value will be associated with the computed hash.
 	 * @throws IOException if an I/O error occurs during hashing
 	 */
-	public Hasher(final Stream<Path> files, final Consumer<Blob> forEachBlob) throws IOException {
+	public Hasher(final Stream<Path> files, final BiConsumer<Reference<Path>, Blob> forEachBlob) throws IOException {
 		this(files, (p) -> true, forEachBlob);
 	}
 	
@@ -99,11 +104,14 @@ public abstract class Hasher {
 	 * @param files a stream of {@link Path} objects to hash
 	 * @param predicate a {@link Predicate} to filter which files should be hashed
 	 * @param forEachBlob a {@link Consumer} invoked with each {@link Blob} before its data is dropped
+	 * @param forEachBlob a consumer invoked with each {@link Blob} and a {@link Reference}&lt;Path&gt; 
+	 *        that wraps the original file path. This allows the path to be modified (e.g., to relativize or normalize it)
+	 *        before being added to the result map. The updated reference value will be associated with the computed hash.
 	 * 
 	 * @throws IOException if an I/O error occurs during hashing
 	 * @throws IllegalArgumentException if no files match the predicate
 	 */
-	public Hasher(final Stream<Path> files, final Predicate<Path> predicate, final Consumer<Blob> forEachBlob) throws IOException {
+	public Hasher(final Stream<Path> files, final Predicate<Path> predicate, final BiConsumer<Reference<Path>, Blob> forEachBlob) throws IOException {
 		this(files, Runtime.getRuntime().availableProcessors(), predicate, forEachBlob);
 	}
 	
@@ -111,21 +119,33 @@ public abstract class Hasher {
 	 * Constructs a {@code Hasher} that processes all files matching the given predicate
 	 * from the provided stream, using a specified number of threads.
 	 * 
-	 * <p>For each file, a {@link Blob} is created, passed to the given consumer,
-	 * and its data is then discarded to conserve memory. Hashing is performed
-	 * in parallel across the requested number of threads.
+	 * <p>
+	 * Each matching file is converted into a {@link Blob}, passed to the provided {@link BiConsumer},
+	 * and then discarded (i.e., its data is dropped) to conserve memory.
+	 * </p>
 	 * 
-	 * If the requested amount of threads is invalid, then a valid amount of
-	 * threads will be used instead.</p>
-	 *
-	 * @param files a stream of {@link Path} objects to hash
-	 * @param threads the number of threads to use (adjusted if less than 1 or greater than available processors)
-	 * @param predicate a {@link Predicate} to filter which files should be hashed
-	 * @param forEachBlob a {@link Consumer} invoked with each {@link Blob} before its data is dropped
-	 * @throws IOException if an I/O error occurs during hashing
-	 * @throws IllegalArgumentException if no files match the predicate
+	 * <p>
+	 * Hashing is performed in parallel using a thread pool sized according to {@code threads}, unless
+	 * the specified thread count is less than 1 or exceeds available processors, in which case it is adjusted
+	 * to the nearest valid value.
+	 * </p>
+	 * 
+	 * <p>
+	 * The final result is a sorted, thread-safe {@link SetMultimap} mapping content hashes to their
+	 * corresponding file paths. Results can be accessed via {@link #results()}.
+	 * </p>
+	 * 
+	 * @param files a stream of file paths to be hashed
+	 * @param threads the number of threads to use for parallel hashing (auto-adjusted if invalid)
+	 * @param predicate a predicate to filter files before processing (e.g., by extension or size)
+	 * @param forEachBlob a consumer invoked with each {@link Blob} and a {@link Reference}&lt;Path&gt; 
+	 *        that wraps the original file path. This allows the path to be modified (e.g., to relativize or normalize it)
+	 *        before being added to the result map. The updated reference value will be associated with the computed hash.
+	 * 
+	 * @throws IOException if an error occurs while reading files or during thread execution
+	 * @throws IllegalArgumentException if no files matched the provided predicate
 	 */
-	public Hasher(final Stream<Path> files, int threads, final Predicate<Path> predicate, final Consumer<Blob> forEachBlob) throws IOException {
+	public Hasher(final Stream<Path> files, int threads, final Predicate<Path> predicate, final BiConsumer<Reference<Path>,Blob> forEachBlob) throws IOException {
 		final int processors = Runtime.getRuntime().availableProcessors();
 		Objects.requireNonNull(files);
 		Objects.requireNonNull(predicate);
@@ -190,13 +210,14 @@ public abstract class Hasher {
 				//Each thread uses a local map to avoid synchronization
 				Map<Hash, Set<Path>> local = new HashMap<>();
 				for (Path file : sublist) {
+					Reference<Path> newFile = new Reference<>(file);
 					//Read and hash the file into a Blob, then discard the Blob’s data to conserve memory
 					Hash blob = new Blob(file);
-					forEachBlob.accept((Blob) blob);
+					forEachBlob.accept(newFile, (Blob) blob);
 					((Blob) blob).dropData();
 
 					//Group files by their content hash. Files with the same hash will share the same key
-					local.computeIfAbsent(blob, k -> new HashSet<>()).add(file);
+					local.computeIfAbsent(blob, k -> new HashSet<>()).add(newFile.get());
 				}
 				return local;
 			}));

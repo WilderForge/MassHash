@@ -40,7 +40,7 @@ public class HasherTests {
 	@Order(2)
 	void verifyTest() throws IntegrityException, IOException {
 		System.out.println("Verification test:");
-		hasher = new Hasher(sources, (b) -> {
+		hasher = new Hasher(sources, (f,b) -> {
 			try {
 				b.verify();
 			} catch (IntegrityException e) {
