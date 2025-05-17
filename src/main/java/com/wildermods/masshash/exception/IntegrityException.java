@@ -90,8 +90,12 @@ public class IntegrityException extends Exception {
 	 * @param problems the array of underlying problems contributing to the exception.
 	 */
 	public IntegrityException(String message, Throwable cause, IntegrityProblem... problems) {
-		super(getMessages(message, this.problems = problems == null ? new IntegrityProblem[] {} : Arrays.stream(problems).filter(Objects::nonNull).toList().toArray(new IntegrityProblem[] {})), cause);
-		
+		this(message, cause, computeProblems(problems), false);
+	}
+	
+	private IntegrityException(String message, Throwable cause, IntegrityProblem[] problems, boolean unused) {
+		super(getMessages(message, problems), cause);
+		this.problems = problems;
 	}
 	
 	/**
@@ -104,6 +108,13 @@ public class IntegrityException extends Exception {
 	 */
 	public Stream<IntegrityProblem> getProblems() {
 		return Arrays.stream(problems);
+	}
+	
+	private static IntegrityProblem[] computeProblems(IntegrityProblem... problems) {
+		if(problems == null) {
+			return problems = new IntegrityProblem[]{};
+		}
+		return problems = Arrays.stream(problems).filter(Objects::nonNull).toList().toArray(new IntegrityProblem[] {});
 	}
 	
 	/**
