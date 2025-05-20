@@ -110,6 +110,29 @@ public class IntegrityException extends Exception {
 		return Arrays.stream(problems);
 	}
 	
+	
+	/**
+	 * Converts this {@code IntegrityException} into a single {@link IntegrityProblem}.
+	 * <p>
+	 * This is useful for treating the exception itself as a problem instance,
+	 * particularly in contexts where a unified interface for handling integrity issues
+	 * is required.
+	 * </p>
+	 * <p>
+	 * The returned {@code IntegrityProblem} will provide the message of this exception
+	 * (via {@link #getMessage()}) as its problem description. If the message is {@code null}
+	 * or blank, the name of the exception class is returned instead.
+	 * </p>
+	 *
+	 * @return an {@code IntegrityProblem} representing this exception.
+	 */
+	public IntegrityProblem toProblem() {
+		return () -> {
+			String message = getMessage();
+			return message == null || message.isBlank() ? this.getClass().getName() : message;
+		};
+	}
+	
 	private static IntegrityProblem[] computeProblems(IntegrityProblem... problems) {
 		if(problems == null) {
 			return problems = new IntegrityProblem[]{};
