@@ -1,7 +1,7 @@
 [versions]
 guava_version = "33.4.8-jre"
 junit_version = "5.11.4"
-junit_platform_version = "1.11.4"
+junit_platform_version = "1.13.0"
 log4j_version = "2.24.3"
 
 [libraries]
