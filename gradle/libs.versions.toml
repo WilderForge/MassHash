@@ -1,13 +1,12 @@
 [versions]
 guava_version = "33.5.0-jre"
-junit_version = "6.0.0"
-junit_platform_version = "6.0.0"
+junit_version = "6.0.1"
 log4j_version = "2.25.2"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava_version" }
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit_version"}
-junit_platform = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit_platform_version" }
+junit_platform = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit_version" }
 log4j = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j_version" } 
 
 
