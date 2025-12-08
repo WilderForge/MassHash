@@ -15,7 +15,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -84,8 +83,11 @@ public abstract class Hasher {
 	 * Constructs a {@code Hasher} that processes all regular files from the given stream,
 	 * invoking the specified consumer for each {@link Blob} as it is created.
 	 * 
+	 * <p>The consumer receives a {@link Reference}&lt;Path&gt; wrapping the original file path,
+	 * allowing callers to modify the stored path (e.g., relativize or normalize it) before it
+	 * is added to the result map.</p>
+	 *
 	 * @param files a stream of {@link Path} objects to hash
-	 * @param forEachBlob a {@link Consumer} invoked with each {@link Blob} before its data is dropped
 	 * @param forEachBlob a consumer invoked with each {@link Blob} and a {@link Reference}&lt;Path&gt; 
 	 *        that wraps the original file path. This allows the path to be modified (e.g., to relativize or normalize it)
 	 *        before being added to the result map. The updated reference value will be associated with the computed hash.
@@ -103,7 +105,6 @@ public abstract class Hasher {
 	 *
 	 * @param files a stream of {@link Path} objects to hash
 	 * @param predicate a {@link Predicate} to filter which files should be hashed
-	 * @param forEachBlob a {@link Consumer} invoked with each {@link Blob} before its data is dropped
 	 * @param forEachBlob a consumer invoked with each {@link Blob} and a {@link Reference}&lt;Path&gt; 
 	 *        that wraps the original file path. This allows the path to be modified (e.g., to relativize or normalize it)
 	 *        before being added to the result map. The updated reference value will be associated with the computed hash.
@@ -138,9 +139,10 @@ public abstract class Hasher {
 	 * @param files a stream of file paths to be hashed
 	 * @param threads the number of threads to use for parallel hashing (auto-adjusted if invalid)
 	 * @param predicate a predicate to filter files before processing (e.g., by extension or size)
-	 * @param forEachBlob a consumer invoked with each {@link Blob} and a {@link Reference}&lt;Path&gt; 
-	 *        that wraps the original file path. This allows the path to be modified (e.g., to relativize or normalize it)
-	 *        before being added to the result map. The updated reference value will be associated with the computed hash.
+	 * @param forEachBlob a consumer invoked with each {@link Blob} and a {@link Reference}&lt;Path&gt;
+	 *        wrapping the file's path. The caller may modify this reference (e.g., to relativize or
+	 *        normalize the path) before it is stored in the result map. The final reference value is
+	 *        what will be associated with the blob’s computed hash.
 	 * 
 	 * @throws IOException if an error occurs while reading files or during thread execution
 	 * @throws IllegalArgumentException if no files matched the provided predicate
