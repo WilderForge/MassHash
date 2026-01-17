@@ -93,7 +93,7 @@ public abstract class Hasher {
 	 *        before being added to the result map. The updated reference value will be associated with the computed hash.
 	 * @throws IOException if an I/O error occurs during hashing
 	 */
-	public Hasher(final Stream<Path> files, final BiConsumer<Reference<Path>, Blob> forEachBlob) throws IOException {
+	public Hasher(final Stream<Path> files, final BiConsumer<Reference<Path>, IBlob> forEachBlob) throws IOException {
 		this(files, (p) -> true, forEachBlob);
 	}
 	
@@ -112,7 +112,7 @@ public abstract class Hasher {
 	 * @throws IOException if an I/O error occurs during hashing
 	 * @throws IllegalArgumentException if no files match the predicate
 	 */
-	public Hasher(final Stream<Path> files, final Predicate<Path> predicate, final BiConsumer<Reference<Path>, Blob> forEachBlob) throws IOException {
+	public Hasher(final Stream<Path> files, final Predicate<Path> predicate, final BiConsumer<Reference<Path>, IBlob> forEachBlob) throws IOException {
 		this(files, Runtime.getRuntime().availableProcessors(), predicate, forEachBlob);
 	}
 	
@@ -147,7 +147,7 @@ public abstract class Hasher {
 	 * @throws IOException if an error occurs while reading files or during thread execution
 	 * @throws IllegalArgumentException if no files matched the provided predicate
 	 */
-	public Hasher(final Stream<Path> files, int threads, final Predicate<Path> predicate, final BiConsumer<Reference<Path>,Blob> forEachBlob) throws IOException {
+	public Hasher(final Stream<Path> files, int threads, final Predicate<Path> predicate, final BiConsumer<Reference<Path>,IBlob> forEachBlob) throws IOException {
 		final int processors = Runtime.getRuntime().availableProcessors();
 		Objects.requireNonNull(files);
 		Objects.requireNonNull(predicate);
@@ -214,12 +214,12 @@ public abstract class Hasher {
 				for (Path file : sublist) {
 					Reference<Path> newFile = new Reference<>(file);
 					//Read and hash the file into a Blob, then discard the Blob’s data to conserve memory
-					Hash blob = new Blob(file);
-					forEachBlob.accept(newFile, (Blob) blob);
-					((Blob) blob).dropData();
+					IBlob blob = LightBlob.from(file);
+					forEachBlob.accept(newFile, (IBlob) blob);
+					Hash hash = blob.dropData();
 
 					//Group files by their content hash. Files with the same hash will share the same key
-					local.computeIfAbsent(blob, k -> new HashSet<>()).add(newFile.get());
+					local.computeIfAbsent(hash, k -> new HashSet<>()).add(newFile.get());
 				}
 				return local;
 			}));

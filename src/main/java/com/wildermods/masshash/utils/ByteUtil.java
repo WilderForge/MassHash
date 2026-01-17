@@ -1,5 +1,7 @@
 package com.wildermods.masshash.utils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
@@ -24,6 +26,30 @@ public class ByteUtil {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-1");
 			return bytesToHex(digest.digest(bytes));
+		} catch (NoSuchAlgorithmException e) {
+			throw new AssertionError("SHA-1 algorithm is unavailable.", e);
+		}
+	}
+	
+	/**
+	 * Hashes the contents of an InputStream using SHA-1 without loading all bytes into memory.
+	 * The stream is read sequentially in 1 MiB chunks.
+	 *
+	 * @param stream the InputStream to hash
+	 * @return the hexadecimal SHA-1 hash
+	 * @throws IOException if an I/O error occurs reading the stream
+	 * @throws NullPointerException if the stream is null
+	 */
+	public static String hash(InputStream stream) throws IOException {
+		Objects.requireNonNull(stream, "InputStream cannot be null.");
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-1");
+			byte[] buffer = new byte[1048576]; // 1 MiB buffer
+			int bytesRead;
+			while ((bytesRead = stream.read(buffer)) != -1) {
+				digest.update(buffer, 0, bytesRead);
+			}
+			return bytesToHex(digest.digest());
 		} catch (NoSuchAlgorithmException e) {
 			throw new AssertionError("SHA-1 algorithm is unavailable.", e);
 		}

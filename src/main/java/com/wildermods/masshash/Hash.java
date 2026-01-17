@@ -41,6 +41,6 @@ public interface Hash {
 	 * @return a new {@link Hash} instance.
 	 */
 	public static Hash of(String hash) {
-		return new Blob((byte[])null, hash);
+		return () -> hash;
 	}
 }
