@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 import com.wildermods.masshash.exception.IntegrityException;
 import com.wildermods.masshash.utils.ByteUtil;
@@ -15,6 +16,11 @@ import com.wildermods.masshash.utils.ByteUtil;
  */
 public record Blob(byte[] data, String hash) implements IBlob {
 
+	public Blob {
+		Objects.requireNonNull(data);
+		Objects.requireNonNull(hash);
+	}
+	
     /**
      * Constructs a Blob from the given data and computes its hash.
      *
@@ -118,23 +124,7 @@ public record Blob(byte[] data, String hash) implements IBlob {
      * @return A new {@link Hash} object that represents this blob, but  with no associated data.
      */
 	public Hash dropData() {
-		if(isTransient()) {
-			throw new UnsupportedOperationException("Data already dropped!");
-		}
-		return new Blob((byte[])null, hash);
-	}
-	
-	/**
-	 * Returns the data associated with this Blob
-	 * 
-	 * @return a byte array that contains the data stored in this blob
-	 */
-	@Override
-	public byte[] data() {
-		if(data == null) {
-			throw new UnsupportedOperationException("Null data! Was the data dropped?");
-		}
-		return data;
+		return () -> hash;
 	}
 	
 	@Override
@@ -143,7 +133,7 @@ public record Blob(byte[] data, String hash) implements IBlob {
 	}
 	
 	/**
-	 * Compares this object with another Hash object for equality. All {@link Blob} objects are also instances of {@link Hash}.
+	 * Compares this object with another Hash object for equality. All {@link IBlob} objects are also instances of {@link Hash}.
 	 * <p>
 	 * Two {@link Hash} objects are considered equal if their hashes are the same. This method specifically compares
 	 * the hash of the other object with the hash of this object. If the other object is not an instance of {@link Hash},
