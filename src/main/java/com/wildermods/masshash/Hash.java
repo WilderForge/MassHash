@@ -41,6 +41,51 @@ public interface Hash {
 	 * @return a new {@link Hash} instance.
 	 */
 	public static Hash of(String hash) {
-		return () -> hash;
+		return new Hash() {
+
+			@Override
+			public String hash() {
+				return hash;
+			}
+			
+			@Override
+			public int hashCode() {
+				return hash.hashCode();
+			}
+			
+			/**
+			 * Compares this object with another Hash object for equality. All {@link IBlob} objects are also instances of {@link Hash}.
+			 * <p>
+			 * Two {@link Hash} objects are considered equal if their hashes are the same. This method specifically compares
+			 * the hash of the other object with the hash of this object. If the other object is not an instance of {@link Hash},
+			 * the method returns {@code false}.
+			 * </p>
+			 * 
+			 * @param o the object to compare with this Hash object.
+			 * @return {@code true} if the other object is a {@link Hash} and has the same hash; {@code false} otherwise.
+			 */
+			@Override
+			public boolean equals(Object o) {
+				if(o instanceof Hash) {
+					return hash().equals(((Hash) o).hash());
+				}
+				return false;
+			}
+			
+			/**
+			 * Returns a string representation of this Blob, which is its hash value.
+			 * <p>
+			 * This method overrides the default {@link Object#toString()} method to provide a more meaningful
+			 * string representation of the Blob.
+			 * </p>
+			 * 
+			 * @return the hash of the Blob as a string.
+			 */
+			@Override
+			public String toString() {
+				return hash();
+			}
+			
+		};
 	}
 }

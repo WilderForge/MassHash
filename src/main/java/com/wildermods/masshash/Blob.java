@@ -124,7 +124,7 @@ public record Blob(byte[] data, String hash) implements IBlob {
      * @return A new {@link Hash} object that represents this blob, but  with no associated data.
      */
 	public Hash dropData() {
-		return () -> hash;
+		return Hash.of(hash());
 	}
 	
 	@Override

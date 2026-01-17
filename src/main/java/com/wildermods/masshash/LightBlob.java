@@ -173,7 +173,7 @@ public record LightBlob(Supplier<InputStream> streamSupplier, String hash) imple
 	 */
 	@Override
 	public Hash dropData() {
-		return () -> hash;
+		return Hash.of(hash());
 	}
 	
 	@Override

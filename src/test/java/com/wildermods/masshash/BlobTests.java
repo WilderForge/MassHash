@@ -38,20 +38,11 @@ public class BlobTests {
 	}
 	
 	@Test
-	public void testDropData() {
-		Blob dropped = (Blob) testBlob.dropData();
-		assertThrowsExactly(UnsupportedOperationException.class, () -> {dropped.data();});
-		assertThrowsExactly(UnsupportedOperationException.class, () -> {dropped.dropData();});
-	}
-	
-	@Test
 	public void testVerification() throws IntegrityException {
 		testBlob.verify();
 		
-		Blob dropped = (Blob) testBlob.dropData();
-		Blob corrupt = new Blob(testBlob.data(), new Blob("corrupt".getBytes()).hash());
+		IBlob corrupt = new Blob(testBlob.data(), new Blob("corrupt".getBytes()).hash());
 		
-		assertThrowsExactly(UnsupportedOperationException.class, () -> dropped.verify());
 		assertThrowsExactly(IntegrityException.class, () -> corrupt.verify());
 		assertThrowsExactly(IntegrityException.class, () -> new Blob("test".getBytes(), new Blob("corrupt".getBytes())));
 	}
