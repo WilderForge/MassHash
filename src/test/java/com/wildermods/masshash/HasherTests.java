@@ -42,7 +42,7 @@ public class HasherTests {
 		System.out.println("Verification test:");
 		hasher = new Hasher(sources, (f,b) -> {
 			try {
-				b.verify();
+				((IBlob)b).verify();
 			} catch (IntegrityException e) {
 				throw new RuntimeException(e);
 			}

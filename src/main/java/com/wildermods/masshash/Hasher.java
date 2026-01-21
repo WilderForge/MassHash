@@ -3,6 +3,7 @@ package com.wildermods.masshash;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -45,7 +46,7 @@ import com.wildermods.masshash.utils.Reference;
  * Subclasses can access the resulting hash-to-path mappings via {@link #results()}.
  * </p>
  */
-public abstract class Hasher {
+public abstract class Hasher<T extends Hasher<T>> {
 
 	/**
 	 * A multimap that stores computed hashes and their associated file paths.
@@ -61,6 +62,7 @@ public abstract class Hasher {
 	 */
 	protected SetMultimap<Hash, Path> blobs;
 	protected Logger logger = LogManager.getLogger();
+	protected BlobFactory blobFactory = new BlobFactory();
 	
 	/**
 	 * Protected no-argument constructor for subclass serialization.
@@ -93,7 +95,7 @@ public abstract class Hasher {
 	 *        before being added to the result map. The updated reference value will be associated with the computed hash.
 	 * @throws IOException if an I/O error occurs during hashing
 	 */
-	public Hasher(final Stream<Path> files, final BiConsumer<Reference<Path>, Blob> forEachBlob) throws IOException {
+	public Hasher(final Stream<Path> files, final BiConsumer<Reference<Path>, IBlob> forEachBlob) throws IOException {
 		this(files, (p) -> true, forEachBlob);
 	}
 	
@@ -112,7 +114,7 @@ public abstract class Hasher {
 	 * @throws IOException if an I/O error occurs during hashing
 	 * @throws IllegalArgumentException if no files match the predicate
 	 */
-	public Hasher(final Stream<Path> files, final Predicate<Path> predicate, final BiConsumer<Reference<Path>, Blob> forEachBlob) throws IOException {
+	public Hasher(final Stream<Path> files, final Predicate<Path> predicate, final BiConsumer<Reference<Path>, IBlob> forEachBlob) throws IOException {
 		this(files, Runtime.getRuntime().availableProcessors(), predicate, forEachBlob);
 	}
 	
@@ -147,7 +149,7 @@ public abstract class Hasher {
 	 * @throws IOException if an error occurs while reading files or during thread execution
 	 * @throws IllegalArgumentException if no files matched the provided predicate
 	 */
-	public Hasher(final Stream<Path> files, int threads, final Predicate<Path> predicate, final BiConsumer<Reference<Path>,Blob> forEachBlob) throws IOException {
+	public Hasher(final Stream<Path> files, int threads, final Predicate<Path> predicate, final BiConsumer<Reference<Path>,IBlob> forEachBlob) throws IOException {
 		final int processors = Runtime.getRuntime().availableProcessors();
 		Objects.requireNonNull(files);
 		Objects.requireNonNull(predicate);
@@ -209,14 +211,18 @@ public abstract class Hasher {
 			List<Path> sublist = allFiles.subList(i, Math.min(i + chunkSize, allFiles.size()));
 
 			futures.add(pool.submit(() -> {
+				//One reusable digest per thread
+				MessageDigest digest = blobFactory.digest.get();
+				BlobFactory factory = new BlobFactory(() -> digest); 
 				//Each thread uses a local map to avoid synchronization
 				Map<Hash, Set<Path>> local = new HashMap<>();
 				for (Path file : sublist) {
 					Reference<Path> newFile = new Reference<>(file);
+					
 					//Read and hash the file into a Blob, then discard the Blob’s data to conserve memory
-					Hash blob = new Blob(file);
-					forEachBlob.accept(newFile, (Blob) blob);
-					((Blob) blob).dropData();
+					digest.reset();
+					IBlob blob = factory.blob(file);
+					forEachBlob.accept(newFile, (IBlob) blob);
 
 					//Group files by their content hash. Files with the same hash will share the same key
 					local.computeIfAbsent(blob, k -> new HashSet<>()).add(newFile.get());
