@@ -1,5 +1,10 @@
 package com.wildermods.masshash;
 
+import java.security.MessageDigest;
+import java.util.function.Supplier;
+
+import com.wildermods.masshash.utils.ByteUtil;
+
 /**
  * A functional interface representing a hash. It provides methods for obtaining 
  * the hash value as a string and for comparing it to other hashes.
@@ -13,6 +18,21 @@ public interface Hash {
 	 * @return the hash value.
 	 */
 	public String hash();
+	
+	/**
+	 * @return The hashing algorithm used.
+	 */
+	public default String algorithm() {
+		return digest().get().getAlgorithm();
+	}
+	
+	/**
+	 * The messageDigest that is used to obtain the
+	 * algorithm
+	 */
+	public default Supplier<MessageDigest> digest() {
+		return ByteUtil.DEFAULT_DIGEST;
+	}
 	
 	/**
 	 * Compares this hash to another hash and returns true if they are equal.
@@ -34,18 +54,13 @@ public interface Hash {
 		return hash().equals(hash);
 	}
 	
-	/**
-	 * Creates a new {@link Hash} instance from the given string hash value.
-	 * 
-	 * @param hash the string hash value.
-	 * @return a new {@link Hash} instance.
-	 */
-	public static Hash of(String hash) {
-		return new Hash() {
-
-			@Override
-			public String hash() {
-				return hash;
+	public static class Internal {
+		private static record Impl(String hash, Supplier<MessageDigest> digest) implements Hash {
+			
+			private Impl(String hash, Supplier<MessageDigest> digest) {
+				this.hash = hash;
+				final MessageDigest d = digest.get();
+				this.digest = () -> d;
 			}
 			
 			@Override
@@ -86,6 +101,26 @@ public interface Hash {
 				return hash();
 			}
 			
-		};
+		}
+	}
+	
+	/**
+	 * Creates a new {@link Hash} instance from the given string hash value.
+	 * 
+	 * @param hash the string hash value.
+	 * @return a new {@link Hash} instance.
+	 */
+	public static Hash of(String hash) {
+		return new Internal.Impl(hash, ByteUtil.DEFAULT_DIGEST);
+	}
+	
+	/**
+	 * Creates a new {@link Hash} instance from the given string and digest values.
+	 * 
+	 * @param hash the string hash value.
+	 * @return a new {@link Hash} instance.
+	 */
+	public static Hash of(Supplier<MessageDigest> digest, String hash) {
+		return new Internal.Impl(hash, digest);
 	}
 }

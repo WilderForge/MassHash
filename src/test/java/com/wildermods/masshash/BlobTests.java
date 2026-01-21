@@ -5,7 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 import java.util.function.Supplier;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
 import org.junit.jupiter.api.Test;
 
@@ -16,21 +17,26 @@ public class BlobTests {
 
 	private static final String testHash = "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3";
 	
-	private static final Blob testBlob = new Blob("test".getBytes());
-	private static final Blob testBlob2 = new Blob("test".getBytes());
-	private static final LightBlob lightBlob = new LightBlob(
-		(Supplier<InputStream>)() -> {
-			return new ByteArrayInputStream(
-				"test".getBytes()
-			);}, testHash
-		);
+	private static final BlobFactory factory = new BlobFactory();
+	
+	private static final Blob testBlob = factory.blob("test".getBytes());
+	private static final Blob testBlob2 = factory.blob("test".getBytes());
+	private static final Blob lightBlob = factory.blob(() -> {
+			return new ByteArrayInputStream("test".getBytes());
+	});
 	
 	@Test
 	public void testNullConstructors() {
-		assertThrowsExactly(NullPointerException.class, () -> new Blob((byte[])null));
-		assertThrowsExactly(NullPointerException.class, () -> new Blob(new byte[0], (String)null));
-		assertThrowsExactly(NullPointerException.class, () -> new LightBlob(null, ""));
-		assertThrowsExactly(NullPointerException.class, () -> new LightBlob(lightBlob.streamSupplier(), null));
+		assertThrowsExactly(NullPointerException.class, () -> factory.blob((byte[])null));
+		assertThrowsExactly(NullPointerException.class, () -> factory.blob(new byte[0], (String)null));
+		assertThrowsExactly(NullPointerException.class, () -> factory.blob((Supplier)null, ""));
+		assertThrowsExactly(NullPointerException.class, () -> factory.blob(() -> {
+			try {
+				return lightBlob.dataStream();
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
+		}, null));
 	}
 	
 	@Test
@@ -69,13 +75,19 @@ public class BlobTests {
 	public void testVerification() throws IntegrityException {
 		testBlob.verify();
 		
-		IBlob corrupt = new Blob(testBlob.data(), new Blob("corrupt".getBytes()).hash());
-		IBlob corrupt2 = new LightBlob(
-			lightBlob.streamSupplier(), ByteUtil.hash("corrupt".getBytes())
+		IBlob corrupt = factory.blob(testBlob.data(), factory.blob("corrupt".getBytes()).hash());
+		IBlob corrupt2 = new Blob(
+			() -> {
+				try {
+					return lightBlob.dataStream();
+				} catch (IOException e) {
+					throw new UncheckedIOException(e);
+				}
+			}, ByteUtil.hash("corrupt".getBytes())
 		);
 		
 		assertThrowsExactly(IntegrityException.class, () -> corrupt.verify());
-		assertThrowsExactly(IntegrityException.class, () -> new Blob("test".getBytes(), new Blob("corrupt".getBytes())));
+		assertThrowsExactly(IntegrityException.class, () -> factory.blob("test".getBytes(), factory.blob("corrupt".getBytes()).hash()).verify());
 		assertThrowsExactly(IntegrityException.class, () -> corrupt2.verify());
 	}
 	

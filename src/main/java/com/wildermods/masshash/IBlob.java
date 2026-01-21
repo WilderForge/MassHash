@@ -1,5 +1,7 @@
 package com.wildermods.masshash;
 
+import java.io.UncheckedIOException;
+
 import com.wildermods.masshash.exception.IntegrityException;
 
 /**
@@ -25,5 +27,19 @@ public interface IBlob extends Data, Hash {
 	 * @return A new {@link Hash} object that represents this blob, but  with no associated data.
 	 */
 	public Hash dropData();
+	
+	/**
+	 * Returns the full byte array of the blob data.
+	 * <p>
+	 * Deprecated because reading the entire data into memory may be expensive for large streams.
+	 * Prefer {@link #dataStream()} instead.
+	 * </p>
+	 *
+	 * @return the byte array of the blob
+	 * @throws UncheckedIOException if reading the stream fails
+	 */
+	@Override
+	@Deprecated(forRemoval = false)
+	public byte[] data();
 	
 }
