@@ -36,7 +36,7 @@ public class BlobTests {
 			} catch (IOException e) {
 				throw new UncheckedIOException(e);
 			}
-		}, null));
+		}, (String)null));
 	}
 	
 	@Test
@@ -53,22 +53,6 @@ public class BlobTests {
 		assertEquals(testBlob2, testBlob);
 		assertEquals(lightBlob, testBlob);
 		assertEquals(testBlob, lightBlob);
-	}
-	
-	@Test
-	public void testDroppedBlobEquality() {
-		Hash testBlob2 = testBlob.dropData();
-		
-		assertEquals(testBlob, testBlob);
-		assertEquals(testBlob, testBlob2);
-		assertEquals(testBlob2, testBlob);
-		assertEquals(testBlob2, testBlob2);
-		
-		Hash lightBlob2 = lightBlob.dropData();
-		assertEquals(testBlob, testBlob);
-		assertEquals(testBlob, lightBlob2);
-		assertEquals(lightBlob2, testBlob);
-		assertEquals(lightBlob2, lightBlob2);
 	}
 	
 	@Test

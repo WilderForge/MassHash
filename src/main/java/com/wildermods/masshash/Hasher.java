@@ -223,11 +223,9 @@ public abstract class Hasher<T extends Hasher<T>> {
 					digest.reset();
 					IBlob blob = factory.blob(file);
 					forEachBlob.accept(newFile, (IBlob) blob);
-					Hash hash = blob.dropData();
-					blob = null; //garbage collect this asap
 
 					//Group files by their content hash. Files with the same hash will share the same key
-					local.computeIfAbsent(hash, k -> new HashSet<>()).add(newFile.get());
+					local.computeIfAbsent(blob, k -> new HashSet<>()).add(newFile.get());
 				}
 				return local;
 			}));

@@ -21,14 +21,6 @@ public interface IBlob extends Data, Hash {
 	public void verify() throws IntegrityException;
 	
 	/**
-	 * Drops the data from the current object and returns a new Hash that represents the hash of this Blob.
-	 * The original blob still holds the data for as long as you keep it referenced.
-	 *
-	 * @return A new {@link Hash} object that represents this blob, but  with no associated data.
-	 */
-	public Hash dropData();
-	
-	/**
 	 * Returns the full byte array of the blob data.
 	 * <p>
 	 * Deprecated because reading the entire data into memory may be expensive for large streams.

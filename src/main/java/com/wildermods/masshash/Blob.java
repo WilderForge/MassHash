@@ -120,17 +120,6 @@ public final class Blob implements IBlob {
 			throw new UncheckedIOException(e);
 		}
 	}
-
-	/**
-	 * Drops the data from the current object and returns a new Hash that represents the hash of this Blob.
-	 * The original blob still holds the data for as long as you keep it referenced.
-	 *
-	 * @return A new {@link Hash} object that represents this blob, but  with no associated data.
-	 */
-	@Override
-	public Hash dropData() {
-		return Hash.of(hash());
-	}
 	
 	@Override
 	public int hashCode() {
