@@ -27,6 +27,10 @@ public class BlobFactory {
 		this(null, ByteUtil.DEFAULT_DIGEST);
 	}
 	
+	public BlobFactory(String algorithm) throws NoSuchAlgorithmException {
+		this(null, ByteUtil.consume.apply(MessageDigest.getInstance(algorithm)));
+	}
+	
 	public BlobFactory(Supplier<MessageDigest> digest) {
 		this(null, digest);
 	}
