@@ -55,6 +55,10 @@ public class BlobFactory {
 		}
 	}
 	
+	public Blob blob(Supplier<InputStream> stream, Hash hash) {
+		return new Blob(digest, stream, hash.hash());
+	}
+	
 	public Blob blob(Supplier<InputStream> stream, String hash) {
 		final Blob blob = new Blob(digest, stream, hash);
 		return blob;
@@ -72,7 +76,7 @@ public class BlobFactory {
 		return blob(streamSupplier);
 	}
 	
-	public Blob blob(Path path, String expectedHash) throws IOException {
+	public Blob blob(Path path, Hash hash) {
 		Supplier<InputStream> streamSupplier = () -> {
 			try {
 				return Files.newInputStream(path);
@@ -81,7 +85,19 @@ public class BlobFactory {
 			}
 		};
 		
-		return blob(streamSupplier, expectedHash);
+		return blob(streamSupplier, hash);
+	}
+	
+	public Blob blob(Path path, String hash) throws IOException {
+		Supplier<InputStream> streamSupplier = () -> {
+			try {
+				return Files.newInputStream(path);
+			} catch (IOException e) {
+				throw new UncheckedIOException(e);
+			}
+		};
+		
+		return blob(streamSupplier, hash);
 	}
 	
 	public Blob blob(byte[] data) {
@@ -90,6 +106,14 @@ public class BlobFactory {
 		};
 		
 		return blob(streamSupplier);
+	}
+	
+	public Blob blob(byte[] data, Hash hash) {
+		Supplier<InputStream> streamSupplier = () -> {
+			return new ByteArrayInputStream(data);
+		};
+		
+		return blob(streamSupplier, hash);
 	}
 	
 	public Blob blob(byte[] data, String hash) {
