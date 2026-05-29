@@ -7,7 +7,7 @@ plugins {
 
 version = massHashVersion
 group = "com.wildermods"
-archivesBaseName = "masshash"
+base.archivesName = "masshash"
 
 apply from: 'replaceTokenScript.gradle'
 apply from: 'publishScript.gradle'
@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-	implementation (libs.guava)
+	api (libs.guava)
 	implementation (libs.log4j)
 
 	// Use JUnit Jupiter for testing.
@@ -29,7 +29,7 @@ dependencies {
 // Apply a specific Java toolchain to ease working on different environments.
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(25)
 	}
 }
 
