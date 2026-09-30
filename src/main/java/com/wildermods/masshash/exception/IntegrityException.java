@@ -137,7 +137,7 @@ public class IntegrityException extends Exception {
 		if(problems == null) {
 			return problems = new IntegrityProblem[]{};
 		}
-		return problems = Arrays.stream(problems).filter(Objects::nonNull).toList().toArray(new IntegrityProblem[] {});
+		return problems = Arrays.stream(problems).filter(Objects::nonNull).toArray(IntegrityProblem[]::new);
 	}
 	
 	/**
