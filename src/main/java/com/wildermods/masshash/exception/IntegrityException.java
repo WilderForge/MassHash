@@ -127,8 +127,8 @@ public class IntegrityException extends Exception {
 	 * @return an {@code IntegrityProblem} representing this exception.
 	 */
 	public IntegrityProblem toProblem() {
+		final String message = getMessage();
 		return () -> {
-			String message = getMessage();
 			return message == null || message.isBlank() ? this.getClass().getName() : message;
 		};
 	}

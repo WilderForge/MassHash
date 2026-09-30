@@ -39,9 +39,12 @@ public interface IntegrityProblem {
 		if(t instanceof IntegrityException) {
 			return ((IntegrityException) t).toProblem();
 		}
+		
+		String message = t.getMessage();
+		final String description = message == null || message.isBlank() ? t.getClass().getName() : message;
+		
 		return () -> {
-			String message = t.getMessage();
-			return message == null || message.isBlank() ? t.getClass().getName() : message;
+			return description;
 		};
 	}
 }
