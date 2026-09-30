@@ -162,6 +162,10 @@ public class IntegrityException extends Exception {
 		if(!(problems == null)) {
 			int i = 0;
 			for(IntegrityProblem t : problems) {
+				if(i >= 30) {
+					ret.append("\t\t...And " + (problems.length - i) + " additional problems.");
+					break;
+				}
 				if(t == null) {
 					continue;
 				}
@@ -178,10 +182,6 @@ public class IntegrityException extends Exception {
 					ret.append(t.getMessage());
 				}
 				ret.append('\n');
-				if(i >= 30 && problems.length - i - 1 >= 0) {
-					ret.append("\t\t...And " + (problems.length - i - 1) + " additional problems.");
-					break;
-				}
 				i++;
 			}
 		}
