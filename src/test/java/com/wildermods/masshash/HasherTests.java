@@ -18,7 +18,6 @@ import com.wildermods.masshash.exception.IntegrityException;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class HasherTests {
 
-	static final String VERSION = "thrixlVaultTest";
 	static Path sourceDir = Paths.get("./src", "test", "resources");
 	static Stream<Path> sources;
 	
