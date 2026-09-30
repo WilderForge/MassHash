@@ -71,24 +71,19 @@ public class ExceptionTests {
 	@Test
 	public void testConstructor6_LotsOfValues() {
 		
-		String msg = "LotsOfProbmems";
+		String msg = "LotsOfProblems";
 		IntegrityException e;
 		{
-			IntegrityProblem[] problems = new IntegrityProblem[1000];
-			
-			int nulls = 0;
 			Random random = new Random();
+			IntegrityProblem[] problems = new IntegrityProblem[random.nextInt(1000, 3000)];
+			
 			for(int i = 0; i < problems.length; i++) {
-				switch(random.nextInt(4)) {
-					case 0:
-						nulls++;
-						problems[i] = null;
-						break;
-					case 1:
-					case 2:
-					case 3:
-						problems[i] = () -> UUID.randomUUID().toString();
+				if(i % 4 == 0) {
+					problems[i] = null;
 				}
+				else {
+					problems[i] = () -> UUID.randomUUID().toString();
+				}	
 			}
 			e = new IntegrityException(msg, problems);
 		}
