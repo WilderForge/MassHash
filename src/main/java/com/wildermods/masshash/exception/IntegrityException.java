@@ -172,13 +172,16 @@ public class IntegrityException extends Exception {
 				ret.append("\t\tProblem - ");
 				if(t instanceof Enum) {
 					ret.append(((Enum<?>)t).name());
+					ret.append(": ");
+				}
+				else if(t.getClass().isSynthetic()) {
+					//NO-OP
 				}
 				else {
 					ret.append(t.getClass().getSimpleName());
+					ret.append(": ");
 				}
 				if(t.getMessage() != null) {
-					ret.append(':');
-					ret.append(' ');
 					ret.append(t.getMessage());
 				}
 				ret.append('\n');
