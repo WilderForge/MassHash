@@ -7,7 +7,9 @@ import java.security.MessageDigest;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import com.wildermods.masshash.exception.IntegrityException;
+import org.jspecify.annotations.Nullable;
+
+import com.wildermods.masshash.exception.IntegrityProblem;
 import com.wildermods.masshash.utils.ByteUtil;
 
 /**
@@ -98,23 +100,16 @@ public final class Blob implements IBlob {
 			throw new IOException(e);
 		}
 	}
-
-	/**
-	 * Verifies that the data matches the provided hash.
-	 * <p>
-	 * This method computes the hash of the current data and compares it to the expected hash. If the hashes do not match,
-	 * an {@link IntegrityException} is thrown. This method ensures the integrity of the data.
-	 * </p>
-	 * 
-	 * @throws IntegrityException if the computed hash of the data does not match the expected hash.
-	 */
+	
 	@Override
-	public void verify() throws IntegrityException {
+	@Nullable
+	public IntegrityProblem check() {
 		try (InputStream stream = dataStream()){
 			String actualHash = ByteUtil.hash(stream);
 			if(!actualHash.equals(hash)) {
-				throw new IntegrityException("Expected hash " + hash + " but got " + actualHash);
+				return () -> "Expected hash " + hash + " but got " + actualHash;
 			}
+			return null;
 		}
 		catch(IOException e) {
 			throw new UncheckedIOException(e);
