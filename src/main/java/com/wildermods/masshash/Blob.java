@@ -30,7 +30,9 @@ public final class Blob implements IBlob {
 	Blob (Supplier<MessageDigest> digest, Supplier<InputStream> streamSupplier, String hash) {
 		Objects.requireNonNull(digest);
 		Objects.requireNonNull(streamSupplier);
-		Objects.requireNonNull(streamSupplier.get());
+		try (var unused = Objects.requireNonNull(streamSupplier.get())){} catch (IOException e) {
+			throw new UncheckedIOException(e);
+		}
 		Objects.requireNonNull(hash);
 		this.digest = digest;
 		this.streamSupplier = streamSupplier;

@@ -188,12 +188,12 @@ public class ByteUtil {
 	 * Hashes the contents of an {@link InputStream} using a {@link MessageDigest}
 	 * supplied by the caller.
 	 * <p>
-	 * The provided {@code Callable} is invoked exactly once to obtain a fresh
+	 * The provided {@code Supplier} is invoked exactly once to obtain a fresh
 	 * {@link MessageDigest} instance. The stream is read sequentially in 1 MiB sized
 	 * chunks and fed into the digest.
 	 * </p>
 	 * <p>
-	 * The stream is consumed by this operation and is not closed.
+	 * The stream is consumed by this operation and is then closed.
 	 * </p>
 	 *
 	 * @param stream the input stream to hash
@@ -214,12 +214,14 @@ public class ByteUtil {
 		Objects.requireNonNull(digest, "MessageDigest cannot be null");
 		Objects.requireNonNull(d = digest.get(), "caller provided null MessageDigest");
 		
-		byte[] buffer = new byte[1048576]; // 1 MiB buffer
-		int bytesRead;
-		while ((bytesRead = stream.read(buffer)) != -1) {
-			d.update(buffer, 0, bytesRead);
+		try(stream) {
+			byte[] buffer = new byte[1048576]; // 1 MiB buffer
+			int bytesRead;
+			while ((bytesRead = stream.read(buffer)) != -1) {
+				d.update(buffer, 0, bytesRead);
+			}
+			return bytesToHex(d.digest());
 		}
-		return bytesToHex(d.digest());
 	}
 	
 	private static final char[] HEX = "0123456789abcdef".toCharArray();
