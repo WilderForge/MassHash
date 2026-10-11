@@ -105,7 +105,7 @@ public final class Blob implements IBlob {
 	@Nullable
 	public IntegrityProblem check() {
 		try (InputStream stream = dataStream()){
-			String actualHash = ByteUtil.hash(stream);
+			String actualHash = ByteUtil.hash(stream, digest());
 			if(!actualHash.equals(hash)) {
 				return () -> "Expected hash " + hash + " but got " + actualHash;
 			}
