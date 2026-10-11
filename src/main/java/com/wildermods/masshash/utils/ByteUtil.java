@@ -28,7 +28,16 @@ public class ByteUtil {
 	};
 	
 	public static final Function<MessageDigest, Supplier<MessageDigest>> consume = (p) -> {
-		return () -> p;
+		String algorithm = p.getAlgorithm();
+		Provider provider = p.getProvider();
+		
+		return () -> {
+			try {
+				return MessageDigest.getInstance(algorithm, provider);
+			} catch (NoSuchAlgorithmException e) {
+				throw new IllegalArgumentException(e);
+			}
+		};
 	};
 	
 	/**
