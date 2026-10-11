@@ -209,12 +209,12 @@ public class ByteUtil {
 	 *                              thrown checked exception is the cause.
 	 */
 	public static String hash(InputStream stream, Supplier<MessageDigest> digest) throws IOException {
-		MessageDigest d;
 		Objects.requireNonNull(stream, "InputStream cannot be null");
-		Objects.requireNonNull(digest, "MessageDigest cannot be null");
-		Objects.requireNonNull(d = digest.get(), "caller provided null MessageDigest");
-		
 		try(stream) {
+			MessageDigest d;
+			Objects.requireNonNull(digest, "MessageDigest cannot be null");
+			Objects.requireNonNull(d = digest.get(), "caller provided null MessageDigest");
+		
 			byte[] buffer = new byte[1048576]; // 1 MiB buffer
 			int bytesRead;
 			while ((bytesRead = stream.read(buffer)) != -1) {
